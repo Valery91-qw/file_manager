@@ -1,0 +1,21 @@
+{
+  "name": "file_manager",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Valery91-qw/file_manager.git"
+  },
+  "author": "Valery91-qw",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Valery91-qw/file_manager/issues"
+  },
+  "homepage": "https://github.com/Valery91-qw/file_manager#readme"
+}
