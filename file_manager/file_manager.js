@@ -1,8 +1,10 @@
 import {createInterface} from 'readline';
 import { homedir } from 'os'
-import { sep, resolve, join } from 'path'
+import { sep, resolve, join,  delimiter } from 'path'
 import { readdir, existsSync , readFile, open, rm} from 'fs'
 import {path_resolver} from "./utils/path_resolver.js";
+import {parse_name} from "./utils/parse_name.js";
+import {os_informator} from "./os_informator/os_informator.js";
 
 export class File_manager {
   _userName;
@@ -19,7 +21,7 @@ export class File_manager {
   }
 
   start() {
-    this._userName = this.parseArgs();
+    this._userName = parse_name(process.argv);
     console.log(`Welcome to the File Manager, ${this._userName}!\n`)
     process.chdir(homedir())
     this._currentDirectory = process.cwd()
@@ -108,13 +110,14 @@ export class File_manager {
     })
   }
 
-  parseArgs() {
-    const parsArs = process.argv.slice(2);
-    for (let i = 0; i <= parsArs.length; i++) {
-      if(parsArs[i].includes('--')) {
-        const divideKeyValue = parsArs[i].split('=')
-        return divideKeyValue[1];
-      }
+ //Operating system
+  os() {
+    try {
+      console.dir(os_informator(this._arguments))
+      this._readLine.prompt()
+    } catch (e) {
+      console.log(e.message)
+      this._readLine.prompt()
     }
   }
 }
