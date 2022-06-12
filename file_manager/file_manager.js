@@ -25,16 +25,16 @@ export class File_manager {
 
   start() {
     this._userName = parse_name(process.argv);
-    console.log(`Welcome to the File Manager, ${this._userName}!\n`)
     process.chdir(homedir())
     this._currentDirectory = process.cwd()
+    console.log(`Welcome to the File Manager, ${this._userName}!\n`)
     this._readLine.setPrompt(`You are currently in ${this._currentDirectory}\n`)
     this._readLine.prompt()
     this._readLine
         .on('line', (line) => {
           const parse = line.split(' ')
-          this._command = parse[0];
-          this._arguments = parse[1];
+          this._command = parse.splice(0, 1);
+          this._arguments = parse;
           this.findCommand()
     })
         .on('close', () => {
@@ -44,12 +44,12 @@ export class File_manager {
   }
 
   findCommand() {
-    if (!this[this._command]) {
-      console.log('Invalid input');
-      this._readLine.prompt();
-    } else {
+    try {
       this[this._command]()
       this._readLine.prompt()
+    } catch (e) {
+      console.log('Operation failed');
+      this._readLine.prompt();
     }
   }
 
@@ -68,49 +68,63 @@ export class File_manager {
        if(err) return;
        files.forEach(file => {
          if(file.isDirectory()) console.log(`${file.name}${sep}`)
-         else console.log(file.name)
+         else {
+           console.log(file.name);
+         }
        })
+       this._readLine.prompt()
      })
   }
-//not complete
+
   cd() {
     try {
-      this._currentDirectory = path_resolver(this._currentDirectory, this._arguments)
+      this._currentDirectory = path_resolver(this._currentDirectory, this._arguments[0])
       process.chdir(this._currentDirectory)
       this._readLine.setPrompt(`You are currently in ${this._currentDirectory}\n`)
     } catch (e) {
-      console.log(e.message)
+      console.warn("Invalid input")
     }
   }
-//operation with files
+
   cat() {
-    const pathToFile = join(this._currentDirectory, this._arguments)
-    if(!existsSync(pathToFile)) {
-      console.log('Operation failed')
-      this._readLine.prompt()
-    } else {
+    try {
+      const pathToFile = join(this._currentDirectory, this._arguments[0])
+      if(!existsSync(pathToFile)) throw new Error();
       read_file(pathToFile)
+    } catch (e) {
+      console.log('Invalid input')
+      this._readLine.prompt()
     }
   }
 
   add() {
-    open(join(this._currentDirectory, this._arguments), 'a', (err) => {
-      if (err) {
-        throw new Error("");
-      }
-    });
+    try {
+      open(join(this._currentDirectory, this._arguments[0]), 'a', (err) => {
+        if (err) {
+          throw new Error("");
+        }
+      });
+    } catch (e) {
+      console.log('Invalid input')
+      this._readLine.prompt()
+    }
   }
 
   rm() {
-    rm(join(this._currentDirectory, this._arguments), (err) => {
-      return err;
-    })
+    try {
+      rm(join(this._currentDirectory, this._arguments[0]), (err) => {
+        return err;
+      })
+    } catch (e) {
+      console.log('Invalid input')
+      this._readLine.prompt()
+    }
   }
 
  //Operating system
   os() {
     try {
-      console.dir(os_informator(this._arguments))
+      console.dir(os_informator(this._arguments[0]))
       this._readLine.prompt()
     } catch (e) {
       console.log(e.message)
@@ -119,7 +133,7 @@ export class File_manager {
   }
 
   hash() {
-    const pathToFile = join(this._currentDirectory, this._arguments);
+    const pathToFile = join(this._currentDirectory, this._arguments[0]);
     calculate_hash(pathToFile)
         .then(() => {
           this._readLine.prompt()
