@@ -1,10 +1,13 @@
 import {createInterface} from 'readline';
 import { homedir } from 'os'
-import { sep, resolve, join,  delimiter } from 'path'
-import { readdir, existsSync , readFile, open, rm} from 'fs'
+import { sep, join } from 'path'
+import { readdir, existsSync , open, rm} from 'fs'
 import {path_resolver} from "./utils/path_resolver.js";
 import {parse_name} from "./utils/parse_name.js";
 import {os_informator} from "./os_informator/os_informator.js";
+import {calculate_hash} from "./utils/calc_hash.js";
+import {up_the_tree} from "./constants.js";
+import {read_file} from "./utils/read_file.js";
 
 export class File_manager {
   _userName;
@@ -55,12 +58,8 @@ export class File_manager {
   }
 
   up() {
-    if(!this._currentDirectory.includes(sep)) {
-      return;
-    }
-    const dir = this._currentDirectory.split(sep).slice(0, -1).join(sep);
-    this._currentDirectory = dir;
-    process.chdir(dir)
+    this._currentDirectory = path_resolver(this._currentDirectory, up_the_tree)
+    process.chdir(this._currentDirectory)
     this._readLine.setPrompt(`You are currently in ${this._currentDirectory}\n`)
   }
 
@@ -77,7 +76,7 @@ export class File_manager {
   cd() {
     try {
       this._currentDirectory = path_resolver(this._currentDirectory, this._arguments)
-      process.chdir(resolve(this._currentDirectory))
+      process.chdir(this._currentDirectory)
       this._readLine.setPrompt(`You are currently in ${this._currentDirectory}\n`)
     } catch (e) {
       console.log(e.message)
@@ -89,11 +88,9 @@ export class File_manager {
     if(!existsSync(pathToFile)) {
       console.log('Operation failed')
       this._readLine.prompt()
+    } else {
+      read_file(pathToFile)
     }
-    readFile(pathToFile, {encoding: "utf8"} ,(err, data) => {
-      if(err) return err;
-      console.log(data);
-    })
   }
 
   add() {
@@ -119,5 +116,16 @@ export class File_manager {
       console.log(e.message)
       this._readLine.prompt()
     }
+  }
+
+  hash() {
+    const pathToFile = join(this._currentDirectory, this._arguments);
+    calculate_hash(pathToFile)
+        .then(() => {
+          this._readLine.prompt()
+        })
+        .catch(() => {
+          this._readLine.prompt()
+        })
   }
 }
